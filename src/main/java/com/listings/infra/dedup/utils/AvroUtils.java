@@ -7,8 +7,8 @@ import org.apache.avro.io.BinaryDecoder;
 import org.apache.avro.io.DatumReader;
 import org.apache.avro.io.DecoderFactory;
 
-import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.ByteBuffer;
 
 // TODO get AVRO utility methods from common lib
@@ -25,13 +25,13 @@ public class AvroUtils {
     }
 
     public static GenericRecord deSerializeEnvelope(byte[] data) throws IOException {
-        File schemaFile = new File("/Users/rkandoji/Documents/GitProjects/kafka-beginner/src/main/resources/kafka_envelope.avsc");
+        InputStream schemaFile = getFileFromResources("kafka_envelope.avsc");
         Schema schema = new Schema.Parser().parse(schemaFile);
         return deSerialize(data, schema);
     }
 
     public static GenericRecord deSerializePipelineMessage(byte[] data) throws IOException {
-        File schemaFile = new File("/Users/rkandoji/Documents/GitProjects/kafka-beginner/src/main/resources/pipeline_message_v1.avsc");
+        InputStream schemaFile = getFileFromResources("pipeline_message_v1.avsc");
         Schema schema = new Schema.Parser().parse(schemaFile);
         return deSerialize(data, schema);
     }
@@ -41,6 +41,16 @@ public class AvroUtils {
         BinaryDecoder decoder = DecoderFactory.get().binaryDecoder(data, null);
         GenericRecord result = reader.read(null, decoder);
         return result;
+    }
+
+    private static InputStream getFileFromResources(String fileName) {
+        ClassLoader classLoader = AvroUtils.class.getClassLoader();
+        InputStream in = classLoader.getResourceAsStream(fileName);
+        if (in == null) {
+            throw new IllegalArgumentException(fileName + " - file is not found!");
+        } else {
+            return in;
+        }
     }
 
 }
